@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mali-nurse"
+version = "0.1.0"
+description = "Nurse LLM Chatbot for basic Electronic Health Records (EHR) extraction and collection."
+authors = ["microhum <Guntee12123@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain = "^0.3.7"
+langchain-openai = "^0.2.8"
+langchain-community = "^0.3.7"
+pydantic = "^2.9.2"
+fastapi = "^0.115.5"
+uvicorn = "^0.32.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
