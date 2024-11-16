@@ -1,5 +1,7 @@
 # Nurse LLM
 
+> #### M.A.R.I.N: Medical Assistance for Record Inference and Nursing Translation
+
 ```
 /your_path/MALI_Nurse/
 ├── cli.py
@@ -34,9 +36,9 @@
 
    Alternatively, you can use Poetry for dependency management:
 
-    ```sh
-    poetry install
-    ```
+   ```sh
+   poetry install
+   ```
 3. Set up your environment variables in a `.env` file:
 
    ```env
@@ -100,18 +102,16 @@ Once the CLI is running, you can use the following commands:
 
 - To start interacting with the nurse LLM:
 
-    ```sh
-    start
-    ```
-
+  ```sh
+  start
+  ```
 - To display help information:
 
-    ```sh
-    help
-    ```
-
+  ```sh
+  help
+  ```
 - To exit the CLI session:
 
-    ```sh
-    exit
-    ```
+  ```sh
+  exit
+  ```

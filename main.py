@@ -1,6 +1,8 @@
 import uvicorn
 from llm.llm import VirtualNurseLLM
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import os
 import dotenv
@@ -22,8 +24,32 @@ nurse_llm = VirtualNurseLLM(
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class UserInput(BaseModel):
     user_input: str
+
+@app.get("/", response_class=HTMLResponse)
+def read_index():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>MALI_NURSE API/title>
+    </head>
+    <body>
+        <h1>Welcome to MALI_NURSE API</h1>
+        <p>This is the index page. Use the link below to access the API docs:</p>
+        <a href="/docs">Go to Swagger Docs UI</a>
+    </body>
+    </html>
+    """
 
 @app.get("/history")
 def get_chat_history():
