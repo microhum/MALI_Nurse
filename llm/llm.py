@@ -19,8 +19,11 @@ class VirtualNurseLLM:
         self.JSON_EXAMPLE = JSON_EXAMPLE
         self.ehr_data = {}
         self.chat_history = []
+        self.current_patient_response = None
+        self.current_context = None
         self.debug = False
         self.current_prompt = None
+        self.current_prompt_ehr = None
         self.current_question = None
 
     def create_prompt(self, task_type):
@@ -41,7 +44,7 @@ class VirtualNurseLLM:
     def gather_ehr(self, patient_response, max_retries=3):
         prompt = self.create_prompt("extract_ehr")
         messages = prompt.format_messages(ehr_data=self.ehr_data, patient_response=patient_response, example=self.JSON_EXAMPLE)
-        self.current_prompt = messages
+        self.current_prompt_ehr = messages[0].content
         response = self.client(messages=messages)
         if self.debug:
             pprint(f"gather ehr llm response: \n{response.content}\n")
@@ -52,10 +55,10 @@ class VirtualNurseLLM:
                 json_content = self.extract_json_content(response.content)
                 if self.debug:
                     pprint(f"JSON after dumps:\n{json_content}\n")
-                ehr_data = EHRModel.parse_raw(json_content)
+                ehr_data = EHRModel.model_validate_json(json_content)
 
                 # Update only missing parameters
-                for key, value in ehr_data.dict().items():
+                for key, value in ehr_data.model_dump().items():
                     if value not in [None, [], {}]:  # Checks for None and empty lists or dicts
                         print(f"Updating {key} with value {value}")
                         self.ehr_data[key] = value
@@ -79,7 +82,7 @@ class VirtualNurseLLM:
                         retry_prompt=retry_prompt,
                         json_problem=json_content
                     )
-                    self.current_prompt = messages
+                    self.current_prompt_ehr = messages[0].content
                     print(f"กำลังลองใหม่ด้วย prompt ที่ปรับแล้ว: {retry_prompt}")
                     response = self.client(messages=messages)
 
@@ -109,7 +112,7 @@ class VirtualNurseLLM:
                 messages = ChatPromptTemplate.from_messages([question_prompt, history_context])
                 messages = messages.format_messages(description=f'"{field}":"{description}"', context=context, patient_response=patient_response, field_descriptions=self.field_descriptions)
                 self.current_context = context
-                self.current_prompt = messages
+                self.current_prompt = messages[0].content
                 
                 # format print
                 # pprint(pformat(messages.messages[0].prompt.template, indent=4, width=80))
@@ -127,6 +130,7 @@ class VirtualNurseLLM:
         if patient_response:
             self.chat_history.append({"role": "user", "content": patient_response})
         question = self.get_question(patient_response)
+        self.current_patient_response = patient_response
         self.chat_history.append({"role": "assistant", "content": question})
         return question
 
