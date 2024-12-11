@@ -1,3 +1,8 @@
 .venv
 .env
 **/__pycache__/
+.pytest_cache
+
+# temporary files
+runtime_log.csv
+speedtest.py

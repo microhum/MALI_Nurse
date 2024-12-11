@@ -1,18 +1,19 @@
+from typing import Optional
 import uvicorn
+from llm.basemodel import EHRModel
 from llm.llm import VirtualNurseLLM
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from llm.models import model_list, get_model
+import time
 
-# model: typhoon-v1.5x-70b-instruct
+initial_model = "typhoon-v1.5x-70b-instruct"
 nurse_llm = VirtualNurseLLM(
-    base_url="https://api.opentyphoon.ai/v1",
-    model="typhoon-v1.5x-70b-instruct",
-    api_key=os.getenv("TYPHOON_CHAT_KEY")
+    # base_url=model_list[initial_model]["base_url"],
+    model_name=model_list[initial_model]["model_name"],
+    # api_key=model_list[initial_model]["api_key"]
 )
 
 # model: OpenThaiGPT
@@ -40,23 +41,23 @@ class NurseResponse(BaseModel):
     nurse_response: str
 
 class EHRData(BaseModel):
-    ehr_data: dict
-    current_context: str
-    current_prompt: str
-    current_prompt_ehr: str
-    current_patient_response: str
-    current_question: str
+    ehr_data: Optional[EHRModel]
+    current_context: Optional[str]
+    current_prompt: Optional[str]
+    current_prompt_ehr: Optional[str]
+    current_patient_response: Optional[str]
+    current_question: Optional[str]
 
 class ChatHistory(BaseModel):
     chat_history: list
-    
+        
 @app.get("/", response_class=HTMLResponse)
 def read_index():
     return """
     <!DOCTYPE html>
     <html>
     <head>
-        <title>MALI_NURSE API/title>
+        <title>MALI_NURSE API</title>
     </head>
     <body>
         <h1>Welcome to MALI_NURSE API</h1>
@@ -91,19 +92,37 @@ def data_reset():
     nurse_llm.reset()
     print("Chat history and EHR data have been reset.")
 
+model_cache = {}
+def get_model_cached(model_name):
+    if model_name not in model_cache:
+        model_cache[model_name] = get_model(model_name=model_name)
+    return model_cache[model_name]
+
 @app.post("/nurse_response")
 def nurse_response(user_input: UserInput):
     """
-    Models: "typhoon-v1.5x-70b-instruct (default)", "openthaigpt"
+    Models: "typhoon-v1.5x-70b-instruct (default)", "openthaigpt", "llama-3.3-70b-versatile"
     """
-    if user_input.model_name == "typhoon-v1.5x-70b-instruct":
-        nurse_llm.model = "typhoon-v1.5x-70b-instruct"
-    elif user_input.model_name == "openthaigpt":
-        nurse_llm.model = "openthaigpt"
-    else:
-        return {"error": "Invalid model name"}
+    
+    start_time = time.time()
+    if user_input.model_name != nurse_llm.model_name:
+        print(f"Changing model to {user_input.model_name}")
+        try:
+            nurse_llm.client = get_model_cached(model_name=user_input.model_name)
+        except ValueError:
+            return {"error": "Invalid model name"}
+    print(nurse_llm.client)
+    
+    # response = nurse_llm.slim_invoke(user_input.user_input)
     response = nurse_llm.invoke(user_input.user_input)
-    return NurseResponse(nurse_response = response)
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"Function running time: {duration} seconds")
+    # Log the model name, user input, response, and execution time in CSV format
+    with open("runtime_log.csv", "a") as log_file:
+        log_file.write(f"{user_input.model_name},{user_input.user_input},{response},{duration}\n")
+    
+    return NurseResponse(nurse_response=response)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
