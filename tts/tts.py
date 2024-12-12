@@ -4,7 +4,7 @@ from pythainlp.tokenize import sent_tokenize
 from pydantic import BaseModel , Field
 import requests
 from fastapi.responses import FileResponse
-import uuid
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
@@ -14,6 +14,14 @@ import uvicorn
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Pydantic model for input validation
 class VoiceRequest(BaseModel):
