@@ -1,7 +1,7 @@
 import gradio as gr
 import requests
 
-API_BASE_URL = "http://127.0.0.1:8000"  # Update this with your actual API base URL if deployed elsewhere
+API_BASE_URL = "http://localhost:8000"  # Update this with your actual API base URL if deployed elsewhere
 
 # Function: Get nurse response
 def get_nurse_response(user_input, model_name, chat_history):
@@ -83,25 +83,59 @@ def create_gradio_interface():
         )
 
         # Main Input Section
-        with gr.Row():
-           with gr.Column():
+        with gr.Column(scale=2):
             chat_box = gr.Chatbot(label="Chat with MALI Nurse", scale=1)
+            send_button = gr.Button("Send", variant="primary", size="lg", scale=1)
+            with gr.Row():
+                user_input = gr.Textbox(
+                    label="Your Message",
+                    placeholder="Type your question or message here...",
+                    lines=2,
+                )
+                model_name = gr.Radio(
+                    choices=["typhoon-v1.5x-70b-instruct", "openthaigpt", "llama-3.3-70b-versatile"],
+                    value="typhoon-v1.5x-70b-instruct",
+                    label="Model Selection",
+            )
+                
+        with gr.Column(scale=1):
+            output_selector = gr.Dropdown(
+            choices=["Chat History", "EHR Details"],
+            value="Chat History",
+            label="Select Output to Display",
+            )
 
-        # Input Section
-        with gr.Row():
-            user_input = gr.Textbox(
-                label="Your Message",
-                placeholder="Type your question or message here...",
-                lines=2,
+            chat_history_output = gr.Textbox(
+                label="Chat History Output",
+                interactive=False,
+                lines=6,
+                scale=1,
+                visible=True,  # Initially visible
             )
-            model_name = gr.Radio(
-                choices=["typhoon-v1.5x-70b-instruct", "openthaigpt", "llama-3.3-70b-versatile"],
-                value="typhoon-v1.5x-70b-instruct",
-                label="Model Selection",
+
+            ehr_details_output = gr.Textbox(
+                label="EHR Details Output",
+                interactive=False,
+                lines=6,
+                scale=1,
+                visible=False,  # Initially hidden
             )
-            with gr.Column():
-                send_button = gr.Button("Send", variant="primary", size="lg")
-                notification_box = gr.Textbox(interactive=False, lines=2)
+
+            # Function to toggle visibility
+            def switch_output(selected_output):
+                if selected_output == "Chat History":
+                    return gr.update(visible=True), gr.update(visible=False)
+                elif selected_output == "EHR Details":
+                    return gr.update(visible=False), gr.update(visible=True)
+
+            # Set up the change event
+            output_selector.change(
+                fn=switch_output,
+                inputs=[output_selector],
+                outputs=[chat_history_output, ehr_details_output],  # Update visibility of both components
+            )
+
+            notification_box = gr.Textbox(label="Error", interactive=False, lines=2)
 
         # Bind Get Nurse Response button
         send_button.click(
@@ -117,16 +151,7 @@ def create_gradio_interface():
                 chat_history_button = gr.Button("View Chat History")
                 ehr_details_button = gr.Button("View EHR Details")
             with gr.Column():
-                chat_history_output = gr.Textbox(
-                    label="Chat History",
-                    interactive=False,
-                    lines=6,
-                )
-                ehr_details_output = gr.Textbox(
-                    label="EHR Details",
-                    interactive=False,
-                    lines=6,
-                )
+                
                 ehr_prompt_output = gr.Textbox(
                     label="Outputs",
                     interactive=False,
@@ -151,14 +176,12 @@ def create_gradio_interface():
             )
 
             send_button.click(
-            fn=view_chat_history,
                 fn=view_ehr_details,
                 inputs=[gr.Textbox(value="details", visible=False)],
                 outputs=ehr_details_output
             )
 
             send_button.click(
-            fn=view_chat_history,
                 fn=view_ehr_details,
                 inputs=[gr.Textbox(value="prompt", visible=False)],
                 outputs=ehr_prompt_output
