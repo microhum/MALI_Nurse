@@ -84,8 +84,8 @@ def create_gradio_interface():
 
         # Main Input Section
         with gr.Row():
-           with gr.Row():
-            chat_box = gr.Chatbot(label="Chat with MALI Nurse")
+           with gr.Column():
+            chat_box = gr.Chatbot(label="Chat with MALI Nurse", scale=1)
 
         # Input Section
         with gr.Row():
@@ -144,17 +144,25 @@ def create_gradio_interface():
                 inputs=[],
                 outputs=chat_history_output,
             )
-            # View EHR Details
-            ehr_details_button.click(
+            send_button.click(
+            fn=view_chat_history,
+                inputs=[],
+                outputs=chat_history_output,
+            )
+
+            send_button.click(
+            fn=view_chat_history,
                 fn=view_ehr_details,
                 inputs=[gr.Textbox(value="details", visible=False)],
                 outputs=ehr_details_output
             )
-            ehr_details_button.click(
+
+            send_button.click(
+            fn=view_chat_history,
                 fn=view_ehr_details,
                 inputs=[gr.Textbox(value="prompt", visible=False)],
                 outputs=ehr_prompt_output
-            )            
+            )         
 
         # Footer
         gr.Markdown(

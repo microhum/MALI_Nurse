@@ -1,15 +1,10 @@
-
-import cProfile
-import pstats
-from langchain_openai.chat_models import ChatOpenAI
-from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from pydantic import ValidationError
 import json
 from pprint import pprint
 from llm.basemodel import EHRModel
 from llm.prompt import field_descriptions, TASK_INSTRUCTIONS, JSON_EXAMPLE
-from llm.models import model_list, get_model
+from llm.models import get_model
 import time
 
 class VirtualNurseLLM:
@@ -30,6 +25,7 @@ class VirtualNurseLLM:
         self.current_prompt = None
         self.current_prompt_ehr = None
         self.current_question = None
+        self.ending_text = "ขอบคุณที่ให้ข้อมูลค่ะ ฉันได้ข้อมูลที่ต้องการครบแล้วค่ะ ดิฉันจะบันทึกข้อมูลทั้งหมดนี้เพื่อส่งต่อให้แพทย์ดูแลคุณอย่างเหมาะสมค่ะ"
         
     def create_prompt(self, task_type):
         if task_type == "extract_ehr":
@@ -130,19 +126,20 @@ class VirtualNurseLLM:
 
                 # Store generated question in chat history and return it
                 self.current_question = response.content.strip()
+                
                 return self.current_question
             
-    def refactor_ehr(self):
+    def refactor_ehr(self, current_question=None):
+        patient_response = current_question or self.ending_text
         refactor_prompt = self.create_prompt("refactor")
         messages = ChatPromptTemplate.from_messages([refactor_prompt])
-        messages = messages.format_messages(ehr_data=self.ehr_data, chat_history=self.chat_history, time_now=time.strftime("%Y-%m-%d %H:%M:%S"))
+        messages = messages.format_messages(patient_response="", ehr_data=self.ehr_data, chat_history=self.chat_history, time_now=time.strftime("%Y-%m-%d %H:%M:%S"))
         response = self.client(messages=messages)
         json_content = self.extract_json_content(response.content)
-        if self.debug:
-            pprint(f"JSON after dumps:\n{json_content}\n")
+        pprint(f"JSON after dumps:\n{json_content}\n")
         self.ehr_data = EHRModel.model_validate_json(json_content)
         print("Refactored EHR data ! Ending the process.")
-        return "ขอบคุณที่ให้ข้อมูลค่ะ ฉันได้ข้อมูลที่ต้องการครบแล้วค่ะ"
+        return patient_response
     
     def get_question(self, patient_response):
         question_prompt = self.create_prompt("question")
@@ -155,6 +152,8 @@ class VirtualNurseLLM:
             pprint(ehr_data)
 
         self.current_question = self.fetching_chat(patient_response, question_prompt) or self.refactor_ehr()
+        if self.ending_text in self.current_question:
+            return self.refactor_ehr(self.current_question)
         return self.current_question
 
     def invoke(self, patient_response):
