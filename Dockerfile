@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 COPY --chown=user . /app
 CMD python3 interface.py & \
     uvicorn main:app --host 0.0.0.0 --port 8000 & \
-    uvicorn tts/tts:app --host 0.0.0.0 --port 8001
+    uvicorn tts.tts:app --host 0.0.0.0 --port 8001
