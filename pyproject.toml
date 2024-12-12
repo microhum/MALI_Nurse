@@ -16,6 +16,7 @@ fastapi = "^0.115.5"
 uvicorn = "^0.32.0"
 gradio = "^5.8.0"
 langchain-groq = "^0.2.1"
+pythainlp = "^5.0.4"
 
 
 [build-system]

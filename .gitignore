@@ -9,3 +9,5 @@ __pycache__
 # Files
 speedtest.py
 *.csv
+*.wav
+*.mp3
