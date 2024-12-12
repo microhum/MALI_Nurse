@@ -83,59 +83,60 @@ def create_gradio_interface():
         )
 
         # Main Input Section
-        with gr.Column(scale=2):
-            chat_box = gr.Chatbot(label="Chat with MALI Nurse", scale=1)
-            send_button = gr.Button("Send", variant="primary", size="lg", scale=1)
-            with gr.Row():
-                user_input = gr.Textbox(
-                    label="Your Message",
-                    placeholder="Type your question or message here...",
-                    lines=2,
+        with gr.Row():
+            with gr.Column(scale=2):
+                chat_box = gr.Chatbot(label="Chat with MALI Nurse", scale=1)
+                send_button = gr.Button("Send", variant="primary", size="lg", scale=1)
+                with gr.Row():
+                    user_input = gr.Textbox(
+                        label="Your Message",
+                        placeholder="Type your question or message here...",
+                        lines=2,
+                    )
+                    model_name = gr.Radio(
+                        choices=["typhoon-v1.5x-70b-instruct", "openthaigpt", "llama-3.3-70b-versatile"],
+                        value="typhoon-v1.5x-70b-instruct",
+                        label="Model Selection",
                 )
-                model_name = gr.Radio(
-                    choices=["typhoon-v1.5x-70b-instruct", "openthaigpt", "llama-3.3-70b-versatile"],
-                    value="typhoon-v1.5x-70b-instruct",
-                    label="Model Selection",
-            )
-                
-        with gr.Column(scale=1):
-            output_selector = gr.Dropdown(
-            choices=["Chat History", "EHR Details"],
-            value="Chat History",
-            label="Select Output to Display",
-            )
+                    
+            with gr.Column(scale=1):
+                output_selector = gr.Dropdown(
+                choices=["Chat History", "EHR Details"],
+                value="Chat History",
+                label="Select Output to Display",
+                )
 
-            chat_history_output = gr.Textbox(
-                label="Chat History Output",
-                interactive=False,
-                lines=6,
-                scale=1,
-                visible=True,  # Initially visible
-            )
+                chat_history_output = gr.Textbox(
+                    label="Chat History Output",
+                    interactive=False,
+                    lines=6,
+                    scale=1,
+                    visible=True,  # Initially visible
+                )
 
-            ehr_details_output = gr.Textbox(
-                label="EHR Details Output",
-                interactive=False,
-                lines=6,
-                scale=1,
-                visible=False,  # Initially hidden
-            )
+                ehr_details_output = gr.Textbox(
+                    label="EHR Details Output",
+                    interactive=False,
+                    lines=6,
+                    scale=1,
+                    visible=False,  # Initially hidden
+                )
 
-            # Function to toggle visibility
-            def switch_output(selected_output):
-                if selected_output == "Chat History":
-                    return gr.update(visible=True), gr.update(visible=False)
-                elif selected_output == "EHR Details":
-                    return gr.update(visible=False), gr.update(visible=True)
+                # Function to toggle visibility
+                def switch_output(selected_output):
+                    if selected_output == "Chat History":
+                        return gr.update(visible=True), gr.update(visible=False)
+                    elif selected_output == "EHR Details":
+                        return gr.update(visible=False), gr.update(visible=True)
 
-            # Set up the change event
-            output_selector.change(
-                fn=switch_output,
-                inputs=[output_selector],
-                outputs=[chat_history_output, ehr_details_output],  # Update visibility of both components
-            )
+                # Set up the change event
+                output_selector.change(
+                    fn=switch_output,
+                    inputs=[output_selector],
+                    outputs=[chat_history_output, ehr_details_output],  # Update visibility of both components
+                )
 
-            notification_box = gr.Textbox(label="Error", interactive=False, lines=2)
+                notification_box = gr.Textbox(label="Error", interactive=False, lines=2)
 
         # Bind Get Nurse Response button
         send_button.click(
