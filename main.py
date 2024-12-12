@@ -1,10 +1,13 @@
+import os
 from typing import Optional
+import requests
 import uvicorn
 from llm.basemodel import EHRModel
 from llm.llm import VirtualNurseLLM
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from pythainlp.tokenize import sent_tokenize
 from pydantic import BaseModel
 from llm.models import model_list, get_model
 import time
@@ -22,6 +25,7 @@ nurse_llm = VirtualNurseLLM(
 #     model=".",
 #     api_key="dummy"
 # )
+
 
 app = FastAPI()
 
@@ -51,21 +55,21 @@ class EHRData(BaseModel):
 class ChatHistory(BaseModel):
     chat_history: list
         
-@app.get("/", response_class=HTMLResponse)
-def read_index():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>MALI_NURSE API</title>
-    </head>
-    <body>
-        <h1>Welcome to MALI_NURSE API</h1>
-        <p>This is the index page. Use the link below to access the API docs:</p>
-        <a href="/docs">Go to Swagger Docs UI</a>
-    </body>
-    </html>
-    """
+# @app.get("/", response_class=HTMLResponse)
+# def read_index():
+#     return """
+#     <!DOCTYPE html>
+#     <html>
+#     <head>
+#         <title>MALI_NURSE API</title>
+#     </head>
+#     <body>
+#         <h1>Welcome to MALI_NURSE API</h1>
+#         <p>This is the index page. Use the link below to access the API docs:</p>
+#         <a href="/docs">Go to Swagger Docs UI</a>
+#     </body>
+#     </html>
+#     """
 
 @app.get("/history")
 def get_chat_history():
@@ -123,6 +127,11 @@ def nurse_response(user_input: UserInput):
         log_file.write(f"{user_input.model_name},{user_input.user_input},{response},{duration}\n")
     
     return NurseResponse(nurse_response=response)
+
+# TTS
+from tts.tts import app as tts_app
+
+app.mount("/tts", tts_app)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
