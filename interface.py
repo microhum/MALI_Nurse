@@ -58,6 +58,7 @@ import time
 # Function: View EHR details
 def view_ehr_details(view):
     try:
+        time.sleep(2.5)
         response = requests.get(f"{API_BASE_URL}/details")
         response.raise_for_status()
         ehr_data = response.json()
