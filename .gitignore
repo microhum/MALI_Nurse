@@ -1,9 +1,11 @@
-.venv
-.vscode
-.env
+__pycache__/
 **/__pycache__/
-.pytest_cache
+.ipynb_checkpoints
+.env
+.venv
+.env
+__pycache__
 
-# temporary files
-runtime_log.csv
-speedtest.py    
+# Files
+speedtest.py
+*.csv
