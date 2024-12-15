@@ -1,0 +1,40 @@
+{
+  "patient": {
+    "name": {
+      "prefix": "นาย",
+      "firstname": "สมชาย",
+      "surname": "ใจดี"
+    },
+    "age": 45,
+    "gender": "ชาย"
+  },
+  "medical_history": {
+    "chief_complaint": ["ปวดหัว", "มีไข้สูง"],
+    "present_illness": [
+      "เริ่มมีอาการปวดหัวเมื่อ 3 วันที่แล้ว",
+      "ไข้ขึ้นสูง 39 องศาเมื่อวานนี้",
+      "มีอาการอ่อนเพลียและไอเล็กน้อย"
+    ],
+    "past_illness": ["เบาหวาน", "ภูมิแพ้ละอองเกสร"],
+    "family_history": [
+      {
+        "relation": "พ่อ",
+        "condition": "โรคหัวใจ"
+      },
+      {
+        "relation": "แม่",
+        "condition": "ความดันโลหิตสูง"
+      }
+    ]
+  },
+  "personal_history": [
+    {
+      "type": "พฤติกรรม",
+      "description": "สูบบุหรี่วันละ 10 มวน"
+    },
+    {
+      "type": "การใช้ยา",
+      "description": "รับประทาน Metformin สำหรับเบาหวาน"
+    }
+  ]
+}

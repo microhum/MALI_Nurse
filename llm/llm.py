@@ -115,7 +115,7 @@ class VirtualNurseLLM:
                     context=context, 
                     patient_response=patient_response, 
                     field_descriptions=self.field_descriptions,
-                    time_now=time.strftime("%Y-%m-%d %H:%M:%S")
+                    time_now=time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time() + 7*3600))
                 )
                 self.current_context = context
                 self.current_prompt = messages[0].content
@@ -133,7 +133,7 @@ class VirtualNurseLLM:
         patient_response = current_question or self.ending_text
         refactor_prompt = self.create_prompt("refactor")
         messages = ChatPromptTemplate.from_messages([refactor_prompt])
-        messages = messages.format_messages(patient_response="", ehr_data=self.ehr_data, chat_history=self.chat_history, time_now=time.strftime("%Y-%m-%d %H:%M:%S"))
+        messages = messages.format_messages(patient_response="", ehr_data=self.ehr_data, chat_history=self.chat_history, time_now=time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time() + 7*3600)))
         response = self.client(messages=messages)
         json_content = self.extract_json_content(response.content)
         pprint(f"JSON after dumps:\n{json_content}\n")
